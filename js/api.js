@@ -33,3 +33,4 @@ async function apiRequest(endpoint, method = 'GET', data = null) {
         throw error;
     }
 }
+

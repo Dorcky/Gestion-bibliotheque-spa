@@ -77,6 +77,26 @@ async function handleRegister(event) {
     }
 }
 
+async function handleEditProfile(event) {
+    event.preventDefault();
+    const email = document.getElementById('edit-email').value;
+    const password = document.getElementById('edit-password').value;
+
+    try {
+        const data = { email };
+        if (password) {
+            data.motDePasse = password;
+        }
+        await apiRequest('/utilisateurs/profile', 'PUT', data);
+        alert('Profil mis à jour avec succès');
+        showProfile();
+    } catch (error) {
+        alert('Erreur lors de la mise à jour du profil: ' + error.message);
+    }
+}
+
+
+
 // Fonction pour gérer la déconnexion
 function logout() {
     localStorage.removeItem('token');

@@ -97,5 +97,85 @@ function updateUIAuth(isLoggedIn) {
     }
 }
 
+async function showProfile() {
+    try {
+        updateActiveNavItem('nav-profile');
+        const token = localStorage.getItem('token');
+        if (!token) {
+            document.getElementById('main-content').innerHTML = '<p>Veuillez vous connecter pour voir votre profil.</p>';
+            return;
+        }
+
+        const user = await apiRequest('/utilisateurs/profile');
+        let content = `
+            <h2>Profil Utilisateur</h2>
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">${user.email}</h5>
+                    <p class="card-text">Rôle: ${user.role}</p>
+                    <button class="btn btn-primary" onclick="showEditProfileForm()">Modifier le profil</button>
+                </div>
+            </div>
+        `;
+        document.getElementById('main-content').innerHTML = content;
+    } catch (error) {
+        console.error('Erreur lors du chargement du profil:', error);
+        document.getElementById('main-content').innerHTML = '<p>Erreur lors du chargement du profil.</p>';
+    }
+}
+
+function showEditProfileForm() {
+    const content = `
+        <h2>Modifier le Profil</h2>
+        <form id="edit-profile-form">
+            <div class="form-group">
+                <label for="edit-email">Email</label>
+                <input type="email" class="form-control" id="edit-email" required>
+            </div>
+            <div class="form-group">
+                <label for="edit-password">Nouveau mot de passe (laissez vide si inchangé)</label>
+                <input type="password" class="form-control" id="edit-password">
+            </div>
+            <button type="submit" class="btn btn-primary">Mettre à jour</button>
+        </form>
+    `;
+    document.getElementById('main-content').innerHTML = content;
+    document.getElementById('edit-profile-form').addEventListener('submit', handleEditProfile);
+}
+
+async function handleEditProfile(event) {
+    event.preventDefault();
+    const email = document.getElementById('edit-email').value;
+    const password = document.getElementById('edit-password').value;
+
+    try {
+        const user = await apiRequest('/utilisateurs/profile'); // Obtenir d'abord le profil actuel
+        const data = { 
+            id: user.id, // Inclure l'ID de l'utilisateur
+            email: email
+        };
+        if (password) {
+            data.motDePasse = password;
+        }
+        await apiRequest('/utilisateurs/profile', 'PUT', data);
+        alert('Profil mis à jour avec succès');
+        showProfile();
+    } catch (error) {
+        alert('Erreur lors de la mise à jour du profil: ' + error.message);
+    }
+}
+
+// Fonction pour mettre à jour l'élément de navigation actif
+function updateActiveNavItem(activeId) {
+    const navItems = document.querySelectorAll('.nav-link');
+    navItems.forEach(item => {
+        item.classList.remove('active');
+    });
+    const activeItem = document.getElementById(activeId);
+    if (activeItem) {
+        activeItem.classList.add('active');
+    }
+}
+
 // Initialiser l'application au chargement de la page
 document.addEventListener('DOMContentLoaded', initApp);
